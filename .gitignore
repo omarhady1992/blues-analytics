@@ -1,0 +1,9 @@
+# raw source responses: never published
+data/raw/
+# the SQLite DB is rebuilt locally by `python -m pipeline.update`
+data/*.db
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store

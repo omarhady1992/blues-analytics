@@ -1,0 +1,91 @@
+{
+ "match": [
+  {
+   "id": 9,
+   "title": "Everton 0\u20132 Chelsea",
+   "competition": "Premier League",
+   "date": "2026-10-17",
+   "result": "W"
+  },
+  {
+   "id": 8,
+   "title": "Chelsea 5\u20131 Bournemouth",
+   "competition": "Premier League",
+   "date": "2026-10-10",
+   "result": "W"
+  },
+  {
+   "id": 7,
+   "title": "Brentford 3\u20130 Chelsea",
+   "competition": "Premier League",
+   "date": "2026-09-18",
+   "result": "L"
+  },
+  {
+   "id": 6,
+   "title": "Chelsea 2\u20132 Hull",
+   "competition": "Premier League",
+   "date": "2026-09-12",
+   "result": "D"
+  },
+  {
+   "id": 5,
+   "title": "Chelsea 6\u20133 Leeds",
+   "competition": "EFL Cup",
+   "date": "2026-09-09",
+   "result": "W"
+  },
+  {
+   "id": 4,
+   "title": "Arsenal 2\u20131 Chelsea",
+   "competition": "Premier League",
+   "date": "2026-09-06",
+   "result": "L"
+  },
+  {
+   "id": 3,
+   "title": "Chelsea 4\u20133 Brighton",
+   "competition": "Premier League",
+   "date": "2026-08-30",
+   "result": "W"
+  },
+  {
+   "id": 2,
+   "title": "Chelsea 2\u20130 Luton",
+   "competition": "EFL Cup",
+   "date": "2026-08-27",
+   "result": "W"
+  },
+  {
+   "id": 1,
+   "title": "Fulham 2\u20133 Chelsea",
+   "competition": "Premier League",
+   "date": "2026-08-24",
+   "result": "W"
+  }
+ ],
+ "monthly": [
+  {
+   "id": "2026-10",
+   "title": "October 2026 (to date)",
+   "matches": 2
+  },
+  {
+   "id": "2026-09",
+   "title": "September 2026",
+   "matches": 4
+  },
+  {
+   "id": "2026-08",
+   "title": "August 2026",
+   "matches": 3
+  }
+ ],
+ "season": [
+  {
+   "id": "2026-27",
+   "title": "Season review 2026-27",
+   "placeholder": true
+  }
+ ]
+}

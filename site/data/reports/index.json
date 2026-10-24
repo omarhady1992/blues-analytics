@@ -1,6 +1,13 @@
 {
  "match": [
   {
+   "id": 10,
+   "title": "Chelsea 0\u20132 Tottenham",
+   "competition": "Premier League",
+   "date": "2026-10-24",
+   "result": "L"
+  },
+  {
    "id": 9,
    "title": "Everton 0\u20132 Chelsea",
    "competition": "Premier League",
@@ -68,7 +75,7 @@
   {
    "id": "2026-10",
    "title": "October 2026 (to date)",
-   "matches": 2
+   "matches": 3
   },
   {
    "id": "2026-09",

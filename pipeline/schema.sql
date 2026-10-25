@@ -173,3 +173,52 @@ SELECT p.player_id, p.name, p.position,
        ROUND(AVG(s.rating), 2)          AS avg_rating
 FROM player_match_stats s JOIN players p USING (player_id)
 GROUP BY p.player_id;
+
+-- Build-up & pressing metrics, one row per match per side (see pipeline/buildup.py for every formula).
+-- NULL = the source does not provide the number for that match (e.g. cup matches), never zero.
+CREATE TABLE IF NOT EXISTS team_match_buildup (
+    match_id                 INTEGER NOT NULL REFERENCES matches(match_id),
+    side                     TEXT NOT NULL CHECK (side IN ('chelsea', 'opponent')),
+    -- PPDA of THIS side (how hard it pressed). Understat, event-coordinate based, PL only.
+    ppda                     REAL,
+    ppda_opp_passes          INTEGER,  -- passes the other team made in the pressing zone
+    ppda_def_actions         INTEGER,  -- this side's defensive actions in that zone
+    -- Whole-pitch proxy for every match (FotMob team stats), only for comparison/cups:
+    -- other team's accurate own-half passes / (this side's tackles + interceptions + fouls)
+    ppda_proxy               REAL,
+    -- Passing style
+    passes                   INTEGER,
+    long_balls               INTEGER,
+    long_balls_accurate      INTEGER,
+    long_ball_share          REAL,     -- long_balls / passes
+    long_ball_accuracy       REAL,     -- long_balls_accurate / long_balls
+    long_own_to_opp          INTEGER,  -- Opta: long passes from own half into opposition half (PL only)
+    long_own_to_opp_accurate INTEGER,
+    final_third_entries      INTEGER,  -- Opta finalThirdEntries (PL) / sum of FotMob passes into final third (cups)
+    line_breaking_passes     INTEGER,  -- FotMob, sum over players (not provided for cup matches)
+    -- Goalkeeper distribution (all keepers who played for this side)
+    gk_names                 TEXT,
+    gk_passes                INTEGER,
+    gk_long_balls            INTEGER,
+    gk_long_balls_accurate   INTEGER,
+    gk_long_share            REAL,     -- gk_long_balls / gk_passes
+    gk_long_accuracy         REAL,     -- gk_long_balls_accurate / gk_long_balls
+    goal_kicks               INTEGER,  -- Opta team stat (PL only)
+    goal_kicks_accurate      INTEGER,
+    passing_source           TEXT,     -- 'premier_league' (Opta) or 'fotmob'
+    gk_source                TEXT,
+    PRIMARY KEY (match_id, side)
+);
+
+-- Chelsea's ball progression split by unit (GK / Defender / Midfielder / Forward = player's listed position)
+CREATE TABLE IF NOT EXISTS team_match_buildup_units (
+    match_id             INTEGER NOT NULL REFERENCES matches(match_id),
+    unit                 TEXT NOT NULL,
+    players              INTEGER,
+    minutes              INTEGER,
+    passes               INTEGER,
+    long_balls           INTEGER,
+    final_third_entries  INTEGER,
+    line_breaking_passes INTEGER,
+    PRIMARY KEY (match_id, unit)
+);

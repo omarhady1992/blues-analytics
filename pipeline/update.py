@@ -10,7 +10,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timedelta, timezone
 
-from . import db, export, ingest, reports
+from . import buildup, db, export, ingest, reports
 from .sources import fotmob, premier_league as pl, understat
 
 # Wait a bit after full time so sources have published final numbers
@@ -30,6 +30,14 @@ def main(argv=None):
     fm_team = fotmob.team(refresh=live)
     pl_matches = pl.season_matches(refresh=live)
     us_team = understat.team(refresh=live)
+    try:  # league data carries Understat's per-match PPDA; never let it block an update
+        us_league = understat.league(refresh=live)
+    except Exception as e:
+        print(f"   ! Understat league data unavailable ({e}); using cache if present")
+        try:
+            us_league = understat.league(refresh=False)
+        except Exception:
+            us_league = None
     ingest.sync_pl_squad(con, pl.squad(refresh=live))
     con.commit()
 
@@ -60,7 +68,8 @@ def main(argv=None):
     if skipped:
         print(f"   (waiting for {len(skipped)} just-finished match(es) to settle; rerun in a few hours)")
 
-    print("3/4 Writing reports ...")
+    print("3/4 Computing build-up & pressing metrics, writing reports ...")
+    buildup.build_all(con, us_league)
     reports.build_all(con)
     print("4/4 Exporting site JSON ...")
     export.build_all(con)

@@ -40,6 +40,7 @@ The site has:
 | `pipeline/sources/*.py` | One small module per source. They only fetch and return raw JSON. |
 | `pipeline/ingest.py` | Maps the raw JSON to our tables and links each player and match across the three sources. |
 | `pipeline/schema.sql` | The SQLite schema: tables, a long-format table of raw stats, and a view. |
+| `pipeline/buildup.py` | Build-up & pressing metrics (PPDA, long-ball share, goalkeeper distribution, by-unit progression), recomputed from the cached raw files on every run. |
 | `pipeline/analysis.py` | Loads the database into Pandas, plus per-90 helpers. |
 | `pipeline/reports.py` | Writes the data-driven match, monthly and season reports in Markdown. |
 | `pipeline/export.py` | Writes the JSON files the website reads. |
@@ -52,7 +53,7 @@ The site has:
 |---|---|---|
 | **Premier League API** (`sdp-prem-prod.premier-league-prod.pulselive.com`), Opta data | Player and team stats for Premier League matches (about 100 Opta fields per player), and the squad list | Undocumented public API. Premier League matches only. |
 | **FotMob** (`fotmob.com/api/data`) | The fixture list for every competition, player and team stats for cup matches, ratings, physical data (distance, sprints, top speed), shot maps | Needs a browser-like TLS fingerprint, which `curl_cffi` provides. |
-| **Understat** (`understat.com/getMatchData`) | Shot-level xG from Understat's own model (Premier League only) | Shown as a second xG opinion next to the Opta numbers. |
+| **Understat** (`understat.com/getMatchData`) | Shot-level xG from Understat's own model, and per-match PPDA from `getLeagueData` (Premier League only) | Shown as a second xG opinion next to the Opta numbers. |
 
 The sources are linked through the `source_ids` table. FotMob exposes each player's Opta id, so FotMob and Premier League players match exactly. Understat players are matched by name.
 
@@ -63,7 +64,7 @@ The sources are linked through the `source_ids` table. FotMob exposes each playe
 
 ### Database tables
 
-`players`, `matches`, `team_match_stats` (one row each for Chelsea and the opponent), `player_match_stats` (one row per player per match, with unified columns), `player_match_stats_long` (every numeric stat the sources gave, in long format), `shots` (x and y normalised to 0–1, with the shooting team attacking towards x = 1), `source_ids`, and the view `v_player_season`. See `pipeline/schema.sql`, and `sql/examples.sql` for practice queries.
+`players`, `matches`, `team_match_stats` (one row each for Chelsea and the opponent), `player_match_stats` (one row per player per match, with unified columns), `player_match_stats_long` (every numeric stat the sources gave, in long format), `shots` (x and y normalised to 0–1, with the shooting team attacking towards x = 1), `source_ids`, `team_match_buildup` (build-up & pressing per match and side), `team_match_buildup_units` (Chelsea passing by unit), and the view `v_player_season`. See `pipeline/schema.sql`, and `sql/examples.sql` for practice queries.
 
 ## How to run
 
@@ -85,6 +86,7 @@ git add site && git commit -m "Update after <match>" && git push   # GitHub Acti
 ## Roadmap (exercises)
 
 - [x] v1: data pipeline, SQLite database, automatic reports, interactive site
+- [x] Build-up & pressing: PPDA, long-ball share, goalkeeper distribution, progression by unit
 - [ ] **Pandas/SQL:** rolling 5-match xG trends, home vs away splits, results by formation.
 - [ ] **ML 1, clustering:** group players into roles (K-means or a Gaussian mixture on per-90 profiles). Check whether the clusters match the listed positions.
 - [ ] **ML 2, match rating model:** predict FotMob ratings from Opta stats (linear regression, then gradient boosting with SHAP) to see which stats drive the ratings.

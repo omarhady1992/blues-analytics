@@ -102,6 +102,14 @@ def build_all(con) -> None:
             shots=records(s.drop(columns=["shot_id", "match_id", "source_shot_id"]).sort_values("minute")),
         ))
 
+    bu, units = d["bu"], d["bu_units"]
+    write("buildup.json", [dict(
+        match_id=int(mid),
+        chelsea=(records(bu[(bu.match_id == mid) & (bu.side == "chelsea")].drop(columns=["match_id", "side"])) or [None])[0],
+        opponent=(records(bu[(bu.match_id == mid) & (bu.side == "opponent")].drop(columns=["match_id", "side"])) or [None])[0],
+        units=records(units[units.match_id == mid].drop(columns=["match_id"])),
+    ) for mid in matches.match_id])
+
     write("meta.json", dict(
         season=SEASON_LABEL,
         generated_at=datetime.now(ZoneInfo(LOCAL_TZ)).strftime("%Y-%m-%d %H:%M"),
@@ -111,6 +119,6 @@ def build_all(con) -> None:
         sources=[
             {"name": "Opta via premierleague.com", "used_for": "Premier League player and team stats"},
             {"name": "FotMob", "used_for": "fixtures, cup-match stats, ratings, physical data, cup shot maps"},
-            {"name": "Understat", "used_for": "shot-level xG for Premier League matches"},
+            {"name": "Understat", "used_for": "shot-level xG and PPDA for Premier League matches"},
         ],
     ))

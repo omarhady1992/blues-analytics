@@ -59,7 +59,7 @@ def _leader(df, col, n=1, min_val=None):
 
 
 # ------------------------------------------------------------------ match report
-def match_report(m, matches, pms, shots) -> str:
+def match_report(m, matches, pms, shots, bu=None, bu_units=None) -> str:
     mp = pms[pms.match_id == m.match_id].copy()
     prior = pms[pms.kickoff_local < m.kickoff_local]
     prior_matches = matches[matches.kickoff_local <= m.kickoff_local]
@@ -194,6 +194,8 @@ def match_report(m, matches, pms, shots) -> str:
                                  f"{r['name']}: {fmt(r[col])} {label} in {int(r.minutes)} minutes — his previous "
                                  f"{len(h)} appearances average {exp:.2f} for the same minutes."))
     outliers.sort(key=lambda x: -x[0])
+    if bu is not None:
+        L += buildup_section(m, matches, bu, bu_units)
     L += ["## Notable observations", ""]
     L += [f"- {o}" for o in obs] + [f"- {o[1]}" for o in outliers[:6]]
     if not obs and not outliers:
@@ -215,6 +217,73 @@ def match_report(m, matches, pms, shots) -> str:
 
     L += ["---", f"*{SOURCE_NOTE[m.player_stats_source]} Generated automatically from the data; no manual edits.*"]
     return "\n".join(L)
+
+
+BUILDUP_ROWS = [  # (label, column, kind) kind: 'n' number, 'p' percent, 'r' ratio
+    ("PPDA (Understat; lower = more pressing)", "ppda", "r"),
+    ("PPDA proxy (FotMob, whole pitch)", "ppda_proxy", "r"),
+    ("Long-ball share of passes", "long_ball_share", "p"),
+    ("Long-ball accuracy", "long_ball_accuracy", "p"),
+    ("Final-third entries", "final_third_entries", "n"),
+    ("Line-breaking passes", "line_breaking_passes", "n"),
+    ("GK passes", "gk_passes", "n"),
+    ("GK long-ball share", "gk_long_share", "p"),
+    ("GK long-ball accuracy", "gk_long_accuracy", "p"),
+    ("Goal kicks (accurate)", "goal_kicks", "gk"),
+]
+
+
+def _bu_fmt(v, kind, acc=None):
+    if v is None or pd.isna(v):
+        return "n/a"
+    if kind == "p":
+        return f"{v * 100:.1f}%"
+    if kind == "r":
+        return f"{v:.2f}"
+    if kind == "gk":
+        return f"{int(round(v))}" + (f" ({int(acc)})" if acc is not None and not pd.isna(acc) else "")
+    return f"{v:.1f}" if v != int(v) else f"{int(v)}"
+
+
+def buildup_section(m, matches, bu, bu_units) -> list[str]:
+    mine = bu[bu.match_id == m.match_id].set_index("side")
+    if mine.empty:
+        return []
+    prev_ids = matches[matches.kickoff_utc < m.kickoff_utc].match_id
+    prev = bu[(bu.side == "chelsea") & bu.match_id.isin(prev_ids)]
+    c, o = mine.loc["chelsea"], mine.loc["opponent"]
+    L = ["## Build-up & pressing", "",
+         f"| | Chelsea | {m.opponent} | Chelsea avg, previous matches |", "|---|---:|---:|---:|"]
+    for label, col, kind in BUILDUP_ROWS:
+        acc = "goal_kicks_accurate" if kind == "gk" else None
+        avg = prev[col].mean() if prev[col].notna().any() else None
+        L.append(f"| {label} | {_bu_fmt(c[col], kind, c[acc] if acc else None)} | "
+                 f"{_bu_fmt(o[col], kind, o[acc] if acc else None)} | {_bu_fmt(avg, 'n' if kind == 'gk' else kind)} |")
+    L.append("")
+    notes = []
+    for col, low, high in (("ppda", "most intense press", "least intense press"),
+                           ("gk_long_share", "shortest goalkeeper distribution", "most direct goalkeeper distribution")):
+        allc = bu[(bu.side == "chelsea") & bu[col].notna() & bu.match_id.isin(list(prev_ids) + [m.match_id])]
+        if pd.notna(c[col]) and len(allc) >= 3:
+            if c[col] == allc[col].max():
+                notes.append(f"{high} of the season so far ({_bu_fmt(c[col], 'p' if col != 'ppda' else 'r')})")
+            elif c[col] == allc[col].min():
+                notes.append(f"{low} of the season so far ({_bu_fmt(c[col], 'p' if col != 'ppda' else 'r')})")
+    if notes:
+        L += ["- Chelsea: " + "; ".join(notes) + ".", ""]
+    u = bu_units[bu_units.match_id == m.match_id].set_index("unit")
+    if len(u):
+        L += ["| Chelsea unit | Passes | Long balls | Final-third entries | Line-breaking passes |", "|---|---:|---:|---:|---:|"]
+        for unit in ("Goalkeeper", "Defender", "Midfielder", "Forward"):
+            if unit in u.index:
+                r = u.loc[unit]
+                L.append(f"| {unit} | {_bu_fmt(r.passes, 'n')} | {_bu_fmt(r.long_balls, 'n')} | "
+                         f"{_bu_fmt(r.final_third_entries, 'n')} | {_bu_fmt(r.line_breaking_passes, 'n')} |")
+        L.append("")
+    L += ["*PPDA = opponent passes allowed per Chelsea defensive action in the pressing zone (Understat, Premier League only). "
+          "The proxy uses whole-pitch tackles + interceptions + fouls and is not on the same scale. Goal kicks: Opta, Premier League only. "
+          "n/a = not provided by the source for this match.*", ""]
+    return L
 
 
 # ------------------------------------------------------------------ monthly report
@@ -308,12 +377,12 @@ def season_report(matches, pms) -> str:
 
 def build_all(con) -> None:
     d = load(con)
-    matches, pms, shots = d["matches"], d["pms"], d["shots"]
+    matches, pms, shots, bu, bu_units = d["matches"], d["pms"], d["shots"], d["bu"], d["bu_units"]
     for sub in ("match", "monthly", "season"):
         (OUT / sub).mkdir(parents=True, exist_ok=True)
     index = {"match": [], "monthly": [], "season": []}
     for _, m in matches.iterrows():
-        (OUT / "match" / f"{m.match_id}.md").write_text(match_report(m, matches, pms, shots))
+        (OUT / "match" / f"{m.match_id}.md").write_text(match_report(m, matches, pms, shots, bu, bu_units))
         index["match"].append(dict(id=int(m.match_id), title=_score_line(m), competition=m.competition,
                                    date=m.kickoff_local.strftime("%Y-%m-%d"), result=m.result))
     today_month = datetime.now(ZoneInfo(LOCAL_TZ)).strftime("%Y-%m")

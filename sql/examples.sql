@@ -25,3 +25,18 @@ FROM shots WHERE source = 'understat' AND side = 'chelsea' GROUP BY situation OR
 SELECT p.name, si.source, si.source_id
 FROM players p JOIN source_ids si ON si.entity_type = 'player' AND si.entity_id = p.player_id
 WHERE p.name LIKE '%Palmer%';
+
+-- 6. Build-up & pressing by match vs Chelsea's season average (PPDA: Understat, PL only; NULL = n/a)
+WITH c AS (SELECT * FROM team_match_buildup WHERE side = 'chelsea'),
+     avg AS (SELECT AVG(ppda) AS ppda, AVG(long_ball_share) AS lb, AVG(gk_long_share) AS gk FROM c)
+SELECT m.kickoff_utc, m.opponent, m.competition,
+       c.ppda, ROUND(c.ppda - avg.ppda, 2)                  AS ppda_vs_avg,
+       o.ppda                                               AS opponent_ppda,
+       ROUND(100 * c.long_ball_share, 1)                    AS long_ball_pct,
+       ROUND(100 * c.gk_long_share, 1)                      AS gk_long_pct,
+       ROUND(100 * (c.gk_long_share - avg.gk), 1)           AS gk_long_pct_vs_avg,
+       c.goal_kicks, c.final_third_entries, c.line_breaking_passes
+FROM c CROSS JOIN avg
+JOIN matches m USING (match_id)
+JOIN team_match_buildup o ON o.match_id = c.match_id AND o.side = 'opponent'
+ORDER BY m.kickoff_utc;

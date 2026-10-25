@@ -25,7 +25,9 @@ def load(con: sqlite3.Connection) -> dict[str, pd.DataFrame]:
     wide = team.pivot(index="match_id", columns="side")
     wide.columns = [f"{side}_{col}" for col, side in wide.columns]
     matches = matches.merge(wide.reset_index(), on="match_id", how="left")
-    return dict(matches=matches, team=team, pms=pms, players=players, shots=shots)
+    bu = pd.read_sql("SELECT * FROM team_match_buildup", con)
+    bu_units = pd.read_sql("SELECT * FROM team_match_buildup_units", con)
+    return dict(matches=matches, team=team, pms=pms, players=players, shots=shots, bu=bu, bu_units=bu_units)
 
 
 def per90(df: pd.DataFrame, cols: list[str], min_minutes: int = 0) -> pd.DataFrame:

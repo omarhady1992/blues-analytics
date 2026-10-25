@@ -13,3 +13,9 @@ def team(refresh=True):
 
 def match(match_id, refresh=False):
     return client.get_json(f"{BASE}/getMatchData/{match_id}", f"match_{match_id}", refresh=refresh)
+
+
+def league(refresh=True, league_code="EPL"):
+    """League table data: per-team match history incl. PPDA (event-based, computed by Understat)."""
+    return client.get_json(f"{BASE}/getLeagueData/{league_code}/{UNDERSTAT_SEASON}",
+                           f"league_{league_code}_{UNDERSTAT_SEASON}", refresh=refresh)

@@ -97,7 +97,10 @@ function pageHome() {
     <div class="grid g2" style="margin-top:1rem">
       <div class="card"><h2 style="margin-top:0">Cumulative goals vs xG</h2><div class="chart-box"><canvas id="cCum"></canvas></div></div>
       <div class="card"><h2 style="margin-top:0">Top contributors (all comps)</h2><div id="top"></div></div>
-    </div>`;
+    </div>
+    <div class="card" style="margin-top:1rem"><h2 style="margin-top:0">Build-up &amp; pressing trend <span class="muted" style="font-size:.8rem">PPDA (lower = more pressing) and goalkeeper long-ball share</span></h2>
+      <div class="chart-box"><canvas id="cBu"></canvas></div>
+      <p class="muted" style="font-size:.8rem;margin:.4rem 0 0">PPDA: Understat, Premier League only (gaps = cup matches). Dashed: whole-pitch FotMob proxy, all matches, different scale. <a href="#/about">Method</a></p></div>`;
   const labels = ms.map(m => `${m.venue === "H" ? "" : "@"}${m.opponent.slice(0, 3).toUpperCase()}`);
   newChart(document.getElementById("cXg"), {
     type: "bar", data: { labels, datasets: [
@@ -112,6 +115,17 @@ function pageHome() {
       { label: "xG", data: ms.map(m => +(cx += m.chelsea_xg || 0).toFixed(2)), borderColor: BLUE, borderDash: [6, 4], tension: .2 },
       { label: "Goals against", data: ms.map(m => ca += m.goals_against), borderColor: RED, backgroundColor: RED, tension: .2 },
       { label: "xG against", data: ms.map(m => +(cxa += m.opponent_xg || 0).toFixed(2)), borderColor: RED, borderDash: [6, 4], tension: .2 }] }
+  });
+  const bu = ms.map(m => (DB.buildupById[m.match_id] || {}).chelsea || {});
+  newChart(document.getElementById("cBu"), {
+    type: "line", data: { labels, datasets: [
+      { label: "Chelsea PPDA (Understat)", data: bu.map(b => b.ppda ?? null), borderColor: BLUE, backgroundColor: BLUE, spanGaps: false, tension: .2, yAxisID: "y" },
+      { label: "Opponent PPDA (Understat)", data: ms.map(m => ((DB.buildupById[m.match_id] || {}).opponent || {}).ppda ?? null), borderColor: RED, backgroundColor: RED, spanGaps: false, tension: .2, yAxisID: "y" },
+      { label: "Chelsea PPDA proxy (FotMob)", data: bu.map(b => b.ppda_proxy ?? null), borderColor: GREY, borderDash: [6, 4], tension: .2, yAxisID: "y" },
+      { label: "GK long-ball share %", data: bu.map(b => b.gk_long_share == null ? null : +(100 * b.gk_long_share).toFixed(1)), borderColor: GOLD, backgroundColor: GOLD + "88", type: "bar", yAxisID: "y1", order: 9 }] },
+    options: { scales: { y: { title: { display: true, text: "PPDA" }, beginAtZero: true },
+      y1: { position: "right", min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: "GK long %" } } },
+      plugins: { tooltip: { callbacks: { title: i => scoreLine(ms[i[0].dataIndex]) } } } }
   });
   const agg = squadAggregates(DB.pm).filter(p => p.minutes > 0);
   const top = document.getElementById("top");
@@ -254,6 +268,7 @@ async function pageMatch(id) {
       <div class="card"><h2 style="margin-top:0">Shot map</h2><div id="srcSel"></div><div id="pitch"></div>
         <div class="legend"><span class="dot" style="background:${BLUE}"></span>Chelsea (attacking →)<span class="dot" style="background:${RED}"></span>${esc(m.opponent)} (attacking ←) · size = xG · filled = goal</div></div>
     </div>
+    <div class="card" style="margin-top:1rem"><h2 style="margin-top:0">Build-up &amp; Pressing</h2><div id="bu"></div></div>
     <h2>Standout performers</h2><div class="grid g4" id="stand"></div>
     <h2>Chelsea players</h2><div id="tbl"></div>
     <p class="muted" style="font-size:.8rem">Player stats source: ${m.player_stats_source === "premier_league" ? "Opta via premierleague.com (ratings and physical data: FotMob)" : "FotMob"}.</p>`;
@@ -265,6 +280,8 @@ async function pageMatch(id) {
     const t = (a || 0) + (b || 0) || 1;
     return `<div class="cmp"><div class="lab">${lab}</div><div class="va">${fmt(a, k === "possession" ? 1 : 2)}</div><div class="bar"><div class="a" style="width:${100 * (a || 0) / t}%"></div><div class="b" style="width:${100 * (b || 0) / t}%"></div></div><div class="vb">${fmt(b, k === "possession" ? 1 : 2)}</div></div>`;
   }).join("") + (m.xg_understat_for != null ? `<p class="muted" style="font-size:.8rem">Understat xG model: ${fmt(m.xg_understat_for)} v ${fmt(m.xg_understat_against)}</p>` : "");
+
+  document.getElementById("bu").innerHTML = buildupHtml(m);
 
   const sources = [...new Set(detail.shots.map(s => s.source))];
   let src = sources.includes("understat") ? "understat" : sources[0];
@@ -287,6 +304,40 @@ async function pageMatch(id) {
     { k: "final_third_entries", label: "F3" }, { k: "dribbles_won", label: "Drb" }, { k: "defensive_actions", label: "Def" },
     { k: "duels_won", label: "Duels W" }, { k: "distance_m", label: "Km", fmt: v => v == null ? "–" : (v / 1000).toFixed(1) },
     { k: "rating", label: "Rating", fmt: v => fmt(v, 1) }], rows, { sortKey: "minutes" }));
+}
+
+/* Build-up & pressing block for one match: Chelsea, opponent and Chelsea's season average. */
+const BU_ROWS = [
+  ["PPDA (Understat)", "ppda", "r", "Opponent passes per Chelsea defensive action in Understat's pressing zone. Lower = more intense press. Premier League only."],
+  ["PPDA proxy (FotMob)", "ppda_proxy", "r", "Opponent accurate own-half passes ÷ (tackles + interceptions + fouls), whole pitch. Not on the same scale as PPDA."],
+  ["Passes", "passes", "n"], ["Long-ball share", "long_ball_share", "p", "Long balls ÷ all passes"],
+  ["Long-ball accuracy", "long_ball_accuracy", "p"], ["Long passes own half → opp. half", "long_own_to_opp", "acc", "Opta, Premier League only (accurate in brackets)"],
+  ["Final-third entries", "final_third_entries", "n"], ["Line-breaking passes", "line_breaking_passes", "n", "FotMob; not published for cup matches"],
+  ["GK passes", "gk_passes", "n"], ["GK long-ball share", "gk_long_share", "p", "Goalkeeper long balls ÷ goalkeeper passes"],
+  ["GK long-ball accuracy", "gk_long_accuracy", "p"], ["Goal kicks (accurate)", "goal_kicks", "gk", "Opta, Premier League only. No source splits goal kicks into long/short."]];
+function buFmt(v, kind, r) {
+  if (v == null || Number.isNaN(v)) return "n/a";
+  if (kind === "p") return (100 * v).toFixed(1) + "%";
+  if (kind === "r") return v.toFixed(2);
+  if (kind === "gk") return `${Math.round(v)}${r && r.goal_kicks_accurate != null ? ` (${r.goal_kicks_accurate})` : ""}`;
+  if (kind === "acc") return `${v}${r && r.long_own_to_opp_accurate != null ? ` (${r.long_own_to_opp_accurate})` : ""}`;
+  return Number.isInteger(v) ? String(v) : v.toFixed(1);
+}
+function buildupHtml(m) {
+  const b = DB.buildupById[m.match_id];
+  if (!b || !b.chelsea) return `<p class="muted">No build-up data for this match.</p>`;
+  const all = DB.buildup.map(x => x.chelsea).filter(Boolean);
+  const avg = k => mean(all, k);
+  const c = b.chelsea, o = b.opponent || {};
+  const rows = BU_ROWS.map(([lab, k, kind, tip]) => `<tr><td class="l"${tip ? ` title="${esc(tip)}"` : ""}>${lab}${tip ? ` <span class="muted">ⓘ</span>` : ""}</td>
+    <td>${buFmt(c[k], kind, c)}</td><td>${buFmt(o[k], kind, o)}</td><td class="muted">${buFmt(avg(k), kind === "gk" || kind === "acc" ? "n" : kind)}</td></tr>`).join("");
+  const units = ["Goalkeeper", "Defender", "Midfielder", "Forward"].map(u => b.units.find(x => x.unit === u)).filter(Boolean);
+  const gk = [c.gk_names && `Chelsea GK: ${esc(c.gk_names)}`, o.gk_names && `${esc(m.opponent)} GK: ${esc(o.gk_names)}`].filter(Boolean).join(" · ");
+  return `<div><div class="table-wrap"><table><thead><tr><th class="l">Metric</th><th>Chelsea</th><th>${esc(m.opponent)}</th><th title="Mean of Chelsea's per-match values, all matches with data">Season avg</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div style="margin-top:1rem"><div class="table-wrap"><table><thead><tr><th class="l">Chelsea unit</th><th>Passes</th><th>Long balls</th><th>Final-third entries</th><th>Line-breaking passes</th></tr></thead>
+    <tbody>${units.map(u => `<tr><td class="l">${u.unit}</td><td>${buFmt(u.passes, "n")}</td><td>${buFmt(u.long_balls, "n")}</td><td>${buFmt(u.final_third_entries, "n")}</td><td>${buFmt(u.line_breaking_passes, "n")}</td></tr>`).join("")}</tbody></table></div>
+    <p class="muted" style="font-size:.8rem">${gk}</p>
+    <p class="muted" style="font-size:.8rem">Units use each player's listed position. Season average = mean of Chelsea's per-match values over all matches with data. n/a = the source does not provide this number for this match (never treated as zero). <a href="#/about">Method &amp; caveats</a></p></div></div>`;
 }
 
 /* Horizontal pitch, 105 x 68. Chelsea shoot towards the right, opponents towards the left. */
@@ -335,6 +386,13 @@ function pageAbout() {
       <li><strong>Final-third entries</strong>: passes or carries into the attacking third. <strong>Box touches</strong>: touches in the opposition penalty area.</li>
       <li><strong>Defensive actions</strong>: tackles + interceptions + recoveries + clearances + blocks.</li>
       <li><strong>Per 90</strong>: total ÷ minutes × 90. Small samples can mislead, so use the minimum-minutes filter.</li></ul>
+    <h2 id="buildup">Build-up &amp; pressing: method and caveats</h2><ul>
+      <li><strong>PPDA</strong> (passes allowed per defensive action) = opponent passes ÷ our defensive actions (usually tackles, interceptions, challenges and fouls) in the pressing zone. Lower = more aggressive pressing; typical Premier League values are roughly 6–20. We use <strong>Understat's</strong> per-match PPDA (computed from event coordinates; Understat counts passes and actions in the opposition's part of the pitch and its zone definition is its own). It exists for Premier League matches only, so cup matches show n/a. Understat's numerator and denominator are stored too. PPDA depends heavily on possession: a team with little of the ball sees many opponent passes and gets a high PPDA even if it presses.</li>
+      <li><strong>PPDA proxy</strong> (all matches): opponent accurate own-half passes ÷ our tackles + interceptions + fouls anywhere on the pitch, from FotMob team totals. FotMob has no zone split for defensive actions, so the proxy is lower than real PPDA and only useful for the trend and for cup matches.</li>
+      <li><strong>Long-ball share</strong> = long balls ÷ all passes; <strong>accuracy</strong> = accurate long balls ÷ long balls. Opta team stats in the Premier League, FotMob in cups (same Opta definition of a long ball, roughly 32 m+).</li>
+      <li><strong>Goalkeeper distribution</strong>: passes, long balls and accurate long balls of every keeper who played (summed if two did). <strong>Goal kicks</strong> come from Opta team stats (Premier League only). No public source splits goal kicks into long and short, so "goal kicks long %" is not available; GK long-ball share covers all keeper distribution, including goal kicks.</li>
+      <li><strong>Final-third entries</strong>: Opta team stat in the Premier League; in cups the sum of FotMob "passes into final third" (passes only, so not directly comparable). <strong>Line-breaking passes</strong>: FotMob, summed over players; FotMob does not publish them for cup matches. A full "progressive passes" metric is not available from these sources.</li>
+      <li><strong>By unit</strong>: Chelsea players grouped by their listed position (goalkeeper, defender, midfielder, forward), not by the role they played that day.</li></ul>
     <p>Last update: ${esc(DB.meta.generated_at)} (Cairo time). Code: <a href="https://github.com/omarhady1992/blues-analytics">github.com/omarhady1992/blues-analytics</a></p></article>`;
 }
 
@@ -364,7 +422,9 @@ async function route() {
 (async function init() {
   const [meta, matches, players, pm, reports] = await Promise.all(
     ["meta", "matches", "players", "player_matches", "reports/index"].map(n => getJSON(`data/${n}.json`)));
-  Object.assign(DB, { meta, matches, players, pm, reports });
+  const buildup = await getJSON("data/buildup.json").catch(() => []);
+  Object.assign(DB, { meta, matches, players, pm, reports, buildup });
+  DB.buildupById = byId(buildup, "match_id");
   DB.playersById = byId(players, "player_id");
   DB.matchesById = byId(matches, "match_id");
   document.getElementById("updated").textContent = `Data updated ${meta.generated_at} (Cairo time) · ${meta.matches} matches.`;

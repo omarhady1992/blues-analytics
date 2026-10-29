@@ -41,7 +41,13 @@ def _when(ts: pd.Timestamp) -> str:
 def _score_line(m) -> str:
     home, away = ("Chelsea", m.opponent) if m.venue == "H" else (m.opponent, "Chelsea")
     hg, ag = (m.goals_for, m.goals_against) if m.venue == "H" else (m.goals_against, m.goals_for)
-    return f"{home} {hg}–{ag} {away}"
+    line = f"{home} {hg}–{ag} {away}"
+    pf, pa = getattr(m, "pens_for", None), getattr(m, "pens_against", None)
+    if pf is not None and pa is not None and pf == pf and pa == pa:  # skip NULL/NaN
+        hp, ap = (int(pf), int(pa)) if m.venue == "H" else (int(pa), int(pf))
+        winner = "Chelsea" if pf > pa else m.opponent
+        line += f" ({winner} won {max(hp, ap)}–{min(hp, ap)} on penalties)"
+    return line
 
 
 def _round(m) -> str:

@@ -200,10 +200,16 @@ def ingest_match(con, fixture: dict, pl_matches, us_team, refresh=False) -> int:
     kickoff = to_utc(fixture["status"]["utcTime"])
     home = fixture["home"]["id"] == FOTMOB_TEAM_ID
     us, them = (fixture["home"], fixture["away"]) if home else (fixture["away"], fixture["home"])
-    gf, ga = us["score"], them["score"]
+    # The fixture-list score includes penalty shoot-out kicks (e.g. 7-6 for a 1-1 draw won 6-5 on pens),
+    # so take the score after play from scoreStr and the shoot-out score separately.
+    sc = re.match(r"\s*(\d+)\s*-\s*(\d+)", (fixture.get("status") or {}).get("scoreStr") or "")
+    hs, as_ = (int(sc[1]), int(sc[2])) if sc else (fixture["home"]["score"], fixture["away"]["score"])
+    gf, ga = (hs, as_) if home else (as_, hs)
     competition = fixture["tournament"]["name"]
     info = fm["content"]["matchFacts"].get("infoBox", {})
     lineup = fm["content"]["lineup"]
+    pens = ((fm.get("header") or {}).get("status") or {}).get("reason", {}).get("penalties")
+    pf, pa = ((pens[0], pens[1]) if home else (pens[1], pens[0])) if pens else (None, None)
     our_lu, opp_lu = (lineup["homeTeam"], lineup["awayTeam"]) if home else (lineup["awayTeam"], lineup["homeTeam"])
 
     plm = find_pl_match(pl_matches, kickoff) if competition == "Premier League" else None
@@ -221,6 +227,7 @@ def ingest_match(con, fixture: dict, pl_matches, us_team, refresh=False) -> int:
         player_stats_source="premier_league" if plm else "fotmob",
         xg_understat_for=float(usm["xG"]["h" if home else "a"]) if usm else None,
         xg_understat_against=float(usm["xG"]["a" if home else "h"]) if usm else None,
+        pens_for=pf, pens_against=pa,
     )
     if match_id is None:
         cur = con.execute(f"INSERT INTO matches ({', '.join(row)}) VALUES ({', '.join('?' * len(row))})",
@@ -353,6 +360,8 @@ FM_RESULTS = {"Goal": "Goal", "AttemptSaved": "Saved", "Miss": "Missed", "Post":
 def _ingest_shots(con, match_id, fm, home, usm, refresh):
     # FotMob shots (all matches)
     for s in (fm["content"].get("shotmap") or {}).get("shots", []):
+        if s.get("period") == "PenaltyShootout":  # shoot-out kicks are not shots in the match
+            continue
         side = "chelsea" if s["teamId"] == FOTMOB_TEAM_ID else "opponent"
         pid = db.entity_for(con, "player", "fotmob", s["playerId"]) if side == "chelsea" else None
         result = "Blocked" if s.get("isBlocked") else FM_RESULTS.get(s["eventType"], s["eventType"])

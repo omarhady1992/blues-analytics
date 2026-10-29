@@ -1,6 +1,13 @@
 {
  "match": [
   {
+   "id": 11,
+   "title": "Liverpool 1\u20131 Chelsea (Liverpool won 6\u20135 on penalties)",
+   "competition": "EFL Cup",
+   "date": "2026-10-28",
+   "result": "D"
+  },
+  {
    "id": 10,
    "title": "Chelsea 0\u20132 Tottenham",
    "competition": "Premier League",
@@ -75,7 +82,7 @@
   {
    "id": "2026-10",
    "title": "October 2026 (to date)",
-   "matches": 3
+   "matches": 4
   },
   {
    "id": "2026-09",

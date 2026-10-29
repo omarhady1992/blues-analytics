@@ -17,7 +17,13 @@ const byId = (arr, key) => Object.fromEntries(arr.map(x => [x[key], x]));
 const dateStr = iso => new Date(iso.slice(0, 16)).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 const timeStr = iso => iso.slice(11, 16);
 function scoreLine(m) {
-  return m.venue === "H" ? `Chelsea ${m.goals_for}–${m.goals_against} ${m.opponent}` : `${m.opponent} ${m.goals_against}–${m.goals_for} Chelsea`;
+  const line = m.venue === "H" ? `Chelsea ${m.goals_for}–${m.goals_against} ${m.opponent}` : `${m.opponent} ${m.goals_against}–${m.goals_for} Chelsea`;
+  return line + pensNote(m);
+}
+function pensNote(m) {
+  if (m.pens_for == null || m.pens_against == null) return "";
+  const w = m.pens_for > m.pens_against ? "Chelsea" : m.opponent;
+  return ` (${w} won ${Math.max(m.pens_for, m.pens_against)}–${Math.min(m.pens_for, m.pens_against)} on pens)`;
 }
 function newChart(el, cfg) { const c = new Chart(el, cfg); charts.push(c); return c; }
 Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
@@ -262,7 +268,7 @@ async function pageMatch(id) {
   $app.innerHTML = `<p><a href="#/matches">← Matches</a></p>
     <div class="card"><div class="muted" style="text-align:center">${esc(m.competition)}${m.round ? ` · Round ${esc(m.round)}` : ""} · ${dateStr(m.kickoff_local)} ${timeStr(m.kickoff_local)} Cairo · ${esc(m.ground || "")}</div>
       <div class="score"><span>${home ? "Chelsea" : esc(m.opponent)}</span><span class="n">${home ? m.goals_for : m.goals_against}–${home ? m.goals_against : m.goals_for}</span><span>${home ? esc(m.opponent) : "Chelsea"}</span></div>
-      <div style="text-align:center;margin-top:.4rem"><span class="badge ${m.result}">${m.result}</span> <span class="muted">Formation ${esc(m.formation || "?")} v ${esc(m.opp_formation || "?")}</span> · <a href="#/reports/match/${m.match_id}">Match report →</a></div></div>
+      <div style="text-align:center;margin-top:.4rem"><span class="badge ${m.result}">${m.result}</span>${m.pens_for != null ? ` <span class="muted">${esc(pensNote(m).trim().slice(1, -1))}</span>` : ""} <span class="muted">Formation ${esc(m.formation || "?")} v ${esc(m.opp_formation || "?")}</span> · <a href="#/reports/match/${m.match_id}">Match report →</a></div></div>
     <div class="grid g2" style="margin-top:1rem">
       <div class="card"><h2 style="margin-top:0">Team stats <span class="muted" style="font-size:.8rem">Chelsea (blue) v ${esc(m.opponent)}</span></h2><div id="cmp"></div></div>
       <div class="card"><h2 style="margin-top:0">Shot map</h2><div id="srcSel"></div><div id="pitch"></div>

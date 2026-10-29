@@ -46,7 +46,9 @@ CREATE TABLE IF NOT EXISTS matches (
     opp_formation   TEXT,
     player_stats_source TEXT NOT NULL, -- 'premier_league' (Opta) or 'fotmob'
     xg_understat_for     REAL,         -- Understat's own xG model (PL only)
-    xg_understat_against REAL
+    xg_understat_against REAL,
+    pens_for        INTEGER,           -- penalty shoot-out score (cup ties only), NULL otherwise
+    pens_against    INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS team_match_stats (

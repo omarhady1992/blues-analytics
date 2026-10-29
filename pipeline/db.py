@@ -9,6 +9,11 @@ def connect() -> sqlite3.Connection:
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
     con.executescript(SCHEMA_PATH.read_text())
+    # lightweight migrations for databases created before a column existed
+    cols = {r[1] for r in con.execute("PRAGMA table_info(matches)")}
+    for c in ("pens_for", "pens_against"):
+        if c not in cols:
+            con.execute(f"ALTER TABLE matches ADD COLUMN {c} INTEGER")
     return con
 
 

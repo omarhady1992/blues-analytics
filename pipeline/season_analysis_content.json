@@ -1,0 +1,71 @@
+{
+ "title": "Chelsea 2026-27: season analysis and elite comparison",
+ "summary": "Every part of Chelsea's season through 12 Nov 2026 (13 competitive matches), and how the league numbers compare with 16 of Europe's current top clubs. Short version: results run ahead of the underlying numbers.",
+ "commentary_date": "2026-11-12",
+ "verdict": "Chelsea are 5th with 16 points from 10 league games. FotMob's expected-points table puts them 12th on 13.2 points, and among the 17 elite clubs here they have the lowest xG difference except Lille. Hot finishing and set pieces have carried the results.",
+ "kpis": [
+  {"value": "5th", "label": "Premier League position", "detail": "16 pts, W5 D1 L4"},
+  {"value": "1.60", "label": "Points per match", "detail": "xPoints 1.32 per match"},
+  {"value": "−0.10", "label": "xG difference per match", "detail": "16th of 17 elite clubs", "tone": "bad"},
+  {"value": "+5.0", "label": "League goals above xG", "detail": "19 goals from 14.0 xG"},
+  {"value": "6", "label": "League set-piece goals", "detail": "3rd per match among elite"},
+  {"value": "20%", "label": "League clean sheets", "detail": "17th of 17 elite clubs", "tone": "bad"},
+  {"value": "49.9%", "label": "Possession", "detail": "16th of 17 elite clubs"}
+ ],
+ "text": {
+  "results": "Home league form is solid (10 points from 5, xG 8.4 vs 6.2 against). Away it is 6 points from 5, with 8.8 xG conceded against 5.6 created. Chelsea out-created the opponent in only 4 of 10 league games (Fulham, Brighton, Everton, Man United). The 5–1 over Bournemouth came from 1.10 xG against 1.38.",
+  "attack": "Chelsea score more than the chances suggest. 19 league goals from 14.0 xG is the 4th-biggest overperformance among the 17 elite clubs. Volume is ordinary: 2.3 big chances per match puts them 15th of 17, and 0.103 xG per league shot means the shots are not good ones. Away from home that falls to 0.079 xG per shot.",
+  "defence": "The keepers are not the problem. Penders (+1.97) and Martínez (+1.64) have both saved more than an average keeper would on the shots they faced. The problem is chance quality conceded: 0.122 xG per league shot against, 2.3 big chances conceded per league match, and only 2 clean sheets in 10, the fewest among the elite clubs.",
+  "buildup": "Possession swings with the opponent, from 26% at Brighton to 69% at Sunderland, so the side has no fixed identity on the ball. Long goal-kicks remain the weak link: only 34% of the keeper's long balls find a teammate across the season, falling to 16–22% against Spurs and Liverpool. The two most recent league games produced 105–106 line-breaking passes, well above the 84 average, but just 3.66 xG between them.",
+  "pressing": "PPDA is opponent passes allowed per defensive action, so lower means a more aggressive press. Over the first eight league rounds Chelsea's 14.0 ranked 15th of 20, a mid-to-low block rather than a pressing side. Arsenal, Man City, Liverpool and Brighton all sit between 6.6 and 9.4.",
+  "setpieces": "FotMob credits Chelsea with 6 league set-piece goals from 2.8 set-piece xG, 2nd in the league. They have also conceded 6 (from 4.6 xG), which is 19th of 20 and the most per match among the elite clubs. So set pieces are a big source of goals at both ends. FotMob's set-piece definition is wider than the shot tags above, so the totals differ. Discipline is middling: 2.0 yellows per league match, and one red card (Palmer vs Spurs).",
+  "squad": "28 players have been used, and only Rogers and Palmer have played more than 85% of available minutes. Rogers (6 goals, 4 assists) and Palmer (5, 4) carry the attack. João Pedro is the most productive forward per minute (5 goals and 3 assists in 538 minutes, 0.62 xG+xA per 90), and the team has scored 3 goals in 4 matches since he was injured. Acheampong leads the outfield squad for tackles (30), and Fofana for interceptions (18). Per-90 views use players with at least 270 minutes; stats are for all competitions.",
+  "scatter": "On xG for and against, Chelsea sit in the worst corner of the group, with Lille and Dortmund. Only Lille have a worse balance. On points vs xPoints, almost every elite club is above its expected line. Chelsea's gap is modest (+0.28 points per match, against +1.06 for Lazio); their problem is that the expected baseline is the joint-lowest in the group."
+ },
+ "injuries_asof": "As reported on 11–12 Nov 2026 (Evening Standard, chelseafc.com)",
+ "injuries": [
+  {"title": "João Pedro", "detail": "Thigh. Out since the day before the Spurs game (24 Oct). Possible return vs Leeds on 21 Nov or Forest on 27 Nov.", "status": "Doubt"},
+  {"title": "Maxence Lacroix", "detail": "Hamstring tear in the EFL Cup at Liverpool (28 Oct). Expected back around January.", "status": "Out"},
+  {"title": "Reece James", "detail": "Minor knee surgery in October, his third injury of the season. Around three months out.", "status": "Out"},
+  {"title": "Emiliano Martínez", "detail": "Broken jaw at Everton. Back in training with a mask, expected after the break.", "status": "Returning"},
+  {"title": "Jorrel Hato", "detail": "Unspecified injury, out since late October. Crystal Palace on 2 Dec is a realistic target.", "status": "Out"},
+  {"title": "Josh Acheampong", "detail": "Minor knock, missed Sunderland. Expected back vs Leeds.", "status": "Returning"}
+ ],
+ "strengths": [
+  "Finishing: +5.0 league goals over xG, 96th percentile in the big five.",
+  "Set-piece attack: 0.6 league set-piece goals per match, 94th percentile.",
+  "Goalkeeping: Penders and Martínez both above expected on shot-stopping.",
+  "Home form: 10 points from 5, positive xG difference.",
+  "Rogers and Palmer: 19 goal involvements between them, across nearly every minute."
+ ],
+ "weaknesses": [
+  "Chance creation: 1.40 xG and 2.3 big chances per league match, both bottom-four among elite.",
+  "Chance quality conceded: 1.50 xGA per match; 20% clean sheets, last among elite.",
+  "Set-piece defence: 6 conceded, 19th in the league.",
+  "Away form: 0.079 xG per shot, 1.77 xGA per match.",
+  "No consistent build-up: goalkeeper long balls 34% accurate; possession ranges from 26% to 69%.",
+  "Soft press: PPDA 14.0, 15th in the league."
+ ],
+ "observations": [
+  "Expect some regression. 16 points from 13.2 expected is a gap of 2.8 points. Most elite clubs also beat their xPoints, but from a much higher base: Chelsea's 1.32 xPoints per match is joint-lowest with Lille.",
+  "The squad is valued 4th highest of the 17 (€1,261m on FotMob) but ranks 16th on xG difference. The gap is in output, not budget.",
+  "Losing João Pedro has cost a lot. Since 24 Oct Chelsea have 3 goals in 4 matches, and outside the 3.0 xG against Man United the attack has looked blunt (0.43, 0.66 xG in the two league defeats).",
+  "The best defensive spell was mid-season (Everton 0.43, Spurs 0.74 xGA). The worst came away at Arsenal, Brentford and Sunderland, all 2.0+ xGA. Away structure is the main fix.",
+  "Penders' long distribution is a repeat pattern against pressing sides (Spurs, Liverpool). Building short through Lavia and Caicedo, or varying goal-kick routines, could be worth more than any signing."
+ ],
+ "bottom_line": "Top-four results with mid-table underlying numbers. The fixes are creating more, especially away, and defending set pieces and transitions better. Without them the finishing streak is likely to cool.",
+ "notes": [
+  "Chelsea match data: 13 competitive matches through Sunderland 1–0 Chelsea (8 Nov). The EFL Cup tie at Liverpool counts as a 1–1 draw, lost 5–6 on penalties. PL stats are Opta via premierleague.com; cup stats are FotMob.",
+  "Elite comparison: FotMob league team stats and xG table, fetched 12 Nov 2026. Teams have played 9 (Bundesliga) to 12 (La Liga) league games, so everything is per match.",
+  "Understat was offline on 12 Nov. PPDA and Understat xG come from a copy cached on 29 Oct (PL rounds 1–8), so there is no PPDA for the elite clubs outside England.",
+  "FotMob does not publish league-wide totals for shots or PPDA, so the elite comparison uses shots on target, touches in the box and possession won in the final third.",
+  "FotMob leaves clubs with zero out of count lists (clean sheets, penalties, red cards); those are counted as 0. Squad value is FotMob's estimate.",
+  "Commentary was written on 12 Nov 2026; the tables and charts update whenever the data is rebuilt."
+ ],
+ "sources": [
+  {"title": "Premier League stats (Opta)", "href": "https://www.premierleague.com/stats", "use": "PL match and player stats"},
+  {"title": "FotMob", "href": "https://www.fotmob.com/leagues/47/overview/premier-league", "use": "Cup matches, big-five league team stats, xG table"},
+  {"title": "Understat", "href": "https://understat.com/league/EPL", "use": "PPDA and xG (cached 29 Oct 2026)"},
+  {"title": "Blues Analytics site", "href": "https://omarhady1992.github.io/blues-analytics/", "use": "Match-by-match data"}
+ ]
+}

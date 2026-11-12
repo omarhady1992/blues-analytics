@@ -369,6 +369,7 @@ function pageReports(kind) {
   const items = idx[tab] || [];
   $app.innerHTML = `<h1>Reports</h1><p class="sub">Generated from the data after every match — no opinions, only what the numbers say.</p>
     <div class="tabs">${Object.entries(names).map(([k, v]) => `<a href="#/reports/${k}" class="${k === tab ? "on" : ""}">${v}</a>`).join("")}</div>
+    ${tab === "season" ? `<div class="card list" style="padding:0;margin-bottom:.8rem"><a class="item" href="#/season-analysis"><span><strong>Season analysis &amp; elite comparison</strong> (interactive)</span><span class="muted">Chelsea vs Europe's top clubs →</span></a></div>` : ""}
     <div class="card list" style="padding:0">${items.map(it => `<a class="item" href="#/reports/${tab}/${it.id}">
       <span>${tab === "match" ? `<span class="badge ${it.result}">${it.result}</span> ` : ""}${esc(it.title)}</span>
       <span class="muted">${tab === "match" ? `${esc(it.competition)} · ${dateStr(it.date)}` : tab === "monthly" ? `${it.matches} matches` : (it.placeholder ? "placeholder" : "")}</span></a>`).join("") || `<p class="muted" style="padding:1rem">Nothing yet.</p>`}</div>`;
@@ -405,6 +406,13 @@ function pageAbout() {
 function notFound() { $app.innerHTML = `<h1>Not found</h1><p><a href="#/">Back to overview</a></p>`; }
 
 /* ---------------------------------------------------------------- router */
+/* Season analysis & elite comparison (drawn by js/season.js from data/season_analysis.json) */
+async function pageSeasonAnalysis() {
+  $app.innerHTML = `<p class="loading">Loading season analysis…</p>`;
+  DB.season = DB.season || await getJSON("data/season_analysis.json");
+  window.renderSeason($app, DB.season, { onChart: c => charts.push(c) });
+}
+
 async function getJSON(url) { const r = await fetch(url, { cache: "no-cache" }); if (!r.ok) throw new Error(url + " " + r.status); return r.json(); }
 
 async function route() {
@@ -421,6 +429,7 @@ async function route() {
     else if (page === "match") await pageMatch(a);
     else if (page === "reports") b ? await pageReport(a, b) : pageReports(a);
     else if (page === "about") pageAbout();
+    else if (page === "season-analysis") await pageSeasonAnalysis();
     else notFound();
   } catch (e) { console.error(e); $app.innerHTML = `<p>Something went wrong: ${esc(e.message)}</p>`; }
 }

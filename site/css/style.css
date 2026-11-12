@@ -66,3 +66,21 @@ footer{max-width:1200px;margin:2rem auto 1rem;padding:0 1.2rem;font-size:.8rem;c
   h1{font-size:1.3rem}
   .score{font-size:1.1rem}.score .n{font-size:1.8rem}
 }
+/* season analysis page */
+.sa section{margin-top:1.4rem}
+.sa h3{font-size:.95rem;margin:0 0 .5rem;color:var(--blue-d)}
+.sa .small{font-size:.82rem}
+.sa-toc{display:flex;flex-wrap:wrap;gap:.35rem;margin:.4rem 0 1rem}
+.sa-toc a{font-size:.8rem;padding:.25rem .6rem;border:1px solid var(--line);border-radius:999px;background:#fff;text-decoration:none;color:var(--blue)}
+.sa .kpi .d{font-size:.78rem;color:var(--muted);margin-top:.15rem}
+.sa .kpi .v.bad,.sa .bad{color:var(--loss)}
+.sa .good{color:var(--win);font-weight:600}
+.sa-filters{position:sticky;top:56px;z-index:5;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:1.2rem;padding:.6rem .8rem}
+.sa .chart-box.tall{height:420px}
+.sa tr.hl td{background:#fff6dc;font-weight:600}
+.sa .inj{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.6rem .8rem;border-bottom:1px solid var(--line)}
+.sa .st-out{background:#fde2e2;color:#a12a2a}.sa .st-doubt{background:#fff1cc;color:#7a5a00}.sa .st-returning{background:#dcf3e5;color:#16693a}
+.sa ul.pros li::marker{content:"+  ";color:var(--win);font-weight:700}
+.sa ul.cons li::marker{content:"−  ";color:var(--loss);font-weight:700}
+.sa .callout{background:#fffaf0;border-left:4px solid var(--gold);padding:.7rem 1rem;border-radius:6px;margin-top:1rem}
+.sa .seg{flex-wrap:wrap}

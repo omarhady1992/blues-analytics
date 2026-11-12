@@ -77,6 +77,11 @@ def main(argv=None):
     reports.build_all(con)
     print("4/4 Exporting site JSON ...")
     export.build_all(con)
+    try:  # season analysis page + elite comparison (uses cached league data; refresh with --refresh)
+        from . import season_analysis
+        season_analysis.build(refresh=False)
+    except Exception as e:
+        print(f"   ! season analysis not rebuilt: {e}")
     n = con.execute("SELECT COUNT(*) FROM matches").fetchone()[0]
     calls = fotmob.client.network_calls + pl.client.network_calls + understat.client.network_calls
     print(f"Done. {len(new)} match(es) (re)ingested, {n} in database, {calls} network calls.")

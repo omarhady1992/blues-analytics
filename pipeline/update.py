@@ -29,7 +29,11 @@ def main(argv=None):
     print("1/4 Fetching fixture lists and squad ...")
     fm_team = fotmob.team(refresh=live)
     pl_matches = pl.season_matches(refresh=live)
-    us_team = understat.team(refresh=live)
+    try:  # Understat is optional: if it is down, keep going with the cached copy
+        us_team = understat.team(refresh=live)
+    except Exception as e:
+        print(f"   ! Understat team data unavailable ({e}); using cache, new matches get no Understat xG")
+        us_team = understat.team(refresh=False)
     try:  # league data carries Understat's per-match PPDA; never let it block an update
         us_league = understat.league(refresh=live)
     except Exception as e:
